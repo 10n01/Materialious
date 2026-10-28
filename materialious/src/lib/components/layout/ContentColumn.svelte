@@ -10,8 +10,9 @@
 
 	function checkWidth() {
 		if (isAndroidTv()) {
-			mediumCol = '4';
-			largeCol = '4';
+			smallCol = '3';
+			mediumCol = '3';
+			largeCol = '3';
 		} else if (innerWidth <= 1750) {
 			largeCol = '4';
 		} else {

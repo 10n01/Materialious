@@ -423,16 +423,11 @@
 							{/if}
 
 							{#if 'published' in video}
-								{#if isAndroidTv()}
-									<span>{video.viewCountText ?? cleanNumber(video.viewCount ?? 0)}</span>
-									<span>{getRelativePublished()}</span>
-								{:else}
-									<span>
-										{video.viewCountText ?? cleanNumber(video.viewCount ?? 0)}
-										•
-										{getRelativePublished()}
-									</span>
-								{/if}
+								<span>
+									{video.viewCountText ?? cleanNumber(video.viewCount ?? 0)}
+									•
+									{getRelativePublished()}
+								</span>
 							{/if}
 						</div>
 						{#if !sideways && !isAndroidTv()}
@@ -455,6 +450,7 @@
 		position: relative;
 		width: 100%;
 		overflow: hidden;
+		border-radius: var(--border-radius) var(--border-radius) 0 0;
 	}
 
 	.crop img {
@@ -568,13 +564,26 @@
 	}
 
 	.tv-root .bold {
-		font-size: clamp(1rem, 3.5cqw + 0.4rem, 1.75rem);
+		font-size: clamp(0.95rem, 3cqw + 0.35rem, 1.4rem);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		line-height: 1.25;
+	}
+
+	.tv-root .author-details {
+		margin-top: 0.25rem;
 	}
 
 	.tv-root .author-details span,
 	.tv-root .author-details p,
 	.tv-root .author-details a {
-		font-size: clamp(1rem, 2.6cqw + 0.35rem, 1.4rem);
+		font-size: clamp(0.85rem, 2.2cqw + 0.3rem, 1.15rem);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.tv-play {

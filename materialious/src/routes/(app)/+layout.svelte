@@ -284,17 +284,15 @@
 		bind:this={leftNavElement}
 		onkeydown={handleLeftNavKeyDown}
 	>
-		{#if !isAndroidTv()}
-			<header class="small-padding no-margin">
-				<a
-					href={resolvePath($interfaceDefaultPage)}
-					tabindex="-1"
-					data-sveltekit-preload-data="false"
-				>
-					<Logo />
-				</a>
-			</header>
-		{/if}
+		<header class="small-padding no-margin">
+			<a
+				href={resolvePath($interfaceDefaultPage)}
+				tabindex="-1"
+				data-sveltekit-preload-data="false"
+			>
+				<Logo />
+			</a>
+		</header>
 		{#if isAndroidTv()}
 			<a href={resolve('/(app)/search')} class:active={page.url.href.endsWith('/search')}>
 				<i>search</i>
