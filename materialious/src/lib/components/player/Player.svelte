@@ -32,7 +32,8 @@
 		sponsorBlockDisplayToastStore,
 		sponsorBlockStore,
 		sponsorBlockUrlStore,
-		keybindStore
+		keybindStore,
+		invidiousInstanceStore
 	} from '#lib/store';
 	import { setStatusBarColor } from '#lib/theme/index';
 	import { getVideoYTjs } from '#lib/api/youtubejs/video';

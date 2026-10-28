@@ -35,5 +35,12 @@ export async function manifestDomainInclusion(manifestUrl: string): Promise<stri
 	const serializer = new XMLSerializer();
 	const updatedManifest = serializer.serializeToString(xmlDoc);
 
-	return `data:application/dash+xml;base64,${btoa(updatedManifest)}`;
+	let base64Manifest: string;
+	try {
+		base64Manifest = btoa(updatedManifest);
+	} catch {
+		base64Manifest = btoa(unescape(encodeURIComponent(updatedManifest)));
+	}
+
+	return `data:application/dash+xml;base64,${base64Manifest}`;
 }
