@@ -50,7 +50,7 @@ jobs:
       - name: Build web application
         working-directory: ./materialious
         env:
-          PUBLIC_DEFAULT_INVIDIOUS_INSTANCE: ${{ inputs.invidious_url || github.event.inputs.invidious_url }}
+          PUBLIC_DEFAULT_INVIDIOUS_INSTANCE: ${{ inputs.invidious_url || github.event.inputs.invidious_url || 'http://192.168.1.11:3000' }}
         run: npm run build
 
       - name: Sync with Capacitor Android
@@ -67,8 +67,10 @@ jobs:
 
       - name: Sign Release APKs
         run: |
-          # Generate a signing key
-          keytool -genkey -v -keystore release.keystore -alias materialious -keyalg RSA -keysize 2048 -validity 10000 -storepass materialious -keypass materialious -dname "CN=Materialious TV, OU=Materialious, O=Materialious, L=Local, S=Local, C=VN"
+          # Use stable repository release.keystore
+          if [ ! -f release.keystore ]; then
+            keytool -genkey -v -keystore release.keystore -alias materialious -keyalg RSA -keysize 2048 -validity 10000 -storepass materialious -keypass materialious -dname "CN=Materialious TV, OU=Materialious, O=Materialious, L=Local, S=Local, C=VN"
+          fi
 
           # Find the latest apksigner in Android SDK
           BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)

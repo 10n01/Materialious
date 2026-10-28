@@ -29,6 +29,17 @@ export class ImageCache {
 	}
 }
 
+export function getRelativeThumbnail(url: string): string {
+	if (!url) return '';
+	if (url.startsWith('/') || !url.includes('://')) {
+		const instance = get(invidiousInstanceStore);
+		if (instance) {
+			return new URL(url, instance).href;
+		}
+	}
+	return url;
+}
+
 export function getBestThumbnail(
 	images: Image[] | null,
 	maxWidthDimension: number = 480,
@@ -64,7 +75,7 @@ export function getBestLandscapeThumbnail(images: Image[] | null): string {
 	if (landscape.length === 0) return getBestThumbnail(images, 500, 500);
 
 	landscape.sort((a, b) => b.width * b.height - a.width * a.height);
-	return landscape[0].url;
+	return getRelativeThumbnail(landscape[0].url);
 }
 
 export function proxyGoogleImage(source: string): string {
