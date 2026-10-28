@@ -40,14 +40,14 @@ export function getBestThumbnail(
 		);
 
 		if (imagesFiltered.length === 0) {
-			return images[0].url;
+			return getRelativeThumbnail(images[0].url);
 		}
 
 		imagesFiltered.sort((a, b) => {
 			return b.width * b.height - a.width * a.height;
 		});
 
-		return imagesFiltered[0].url;
+		return getRelativeThumbnail(imagesFiltered[0].url);
 	} else {
 		return '';
 	}

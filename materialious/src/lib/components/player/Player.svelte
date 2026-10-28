@@ -259,13 +259,21 @@
 		setupSponsorSkip();
 
 		player.addEventListener('loaded', () => {
+			console.log('[Materialious Player] shaka loaded event fired');
 			restoreQualityPreference(player);
 			restoreDefaultLanguage(player);
 
 			setActiveAudioTrack(player);
 			setActiveVideoTrack(player);
 
-			if ($playerAutoPlayStore) playerElement?.play();
+			if ($playerAutoPlayStore) {
+				console.log('[Materialious Player] Triggering play from loaded event');
+				playerElement?.play()?.catch((err) => console.error('[Materialious Player] play rejected:', err));
+			}
+		});
+
+		player.addEventListener('buffering', (event) => {
+			console.log('[Materialious Player] Buffering state:', (event as CustomEvent).buffering);
 		});
 
 		if (!data.video.liveNow) {
@@ -306,10 +314,25 @@
 				$playerProxyVideosStore &&
 				!data.video.fallbackPatch
 			) {
+				console.log('[Materialious Player] Fetching DASH manifest via manifestDomainInclusion...', dashUrl);
 				const manifest = await manifestDomainInclusion(dashUrl);
+				console.log('[Materialious Player] Loading manifest in Shaka player...');
 				await player.load(manifest, await getPlaybackHistory());
+				console.log('[Materialious Player] player.load manifest completed!');
 			} else {
+				console.log('[Materialious Player] Loading direct dashUrl...', dashUrl);
 				await player.load(dashUrl, await getPlaybackHistory());
+				console.log('[Materialious Player] player.load dashUrl completed!');
+			}
+
+			if ($playerAutoPlayStore && playerElement) {
+				try {
+					console.log('[Materialious Player] Explicitly triggering playerElement.play()...');
+					await playerElement.play();
+					console.log('[Materialious Player] Explicit play succeeded!');
+				} catch (err) {
+					console.error('[Materialious Player] Explicit play error:', err);
+				}
 			}
 
 			if (data.content.timestamps) {
@@ -466,7 +489,11 @@
 
 		player?.addEventListener('error', (event) => {
 			const error = (event as CustomEvent).detail as shaka.util.Error;
-			console.error('Player error:', error);
+			console.error('[SHAKA PLAYER ERROR]', error.code, error.severity, error.category, error.message, error.data);
+		});
+
+		window.addEventListener('unhandledrejection', (e) => {
+			console.error('[UNHANDLED PROMISE REJECTION]', e.reason);
 		});
 
 		playerElement?.addEventListener('volumechange', saveVolumePreference);
@@ -621,7 +648,32 @@
 			return false;
 		});
 
-		if (!isAndroidTv()) {
+		if (isAndroidTv()) {
+			// On Android TV, Enter/OK key on remote toggles play/pause
+			Mousetrap.bind('enter', () => {
+				toggleVideoPlaybackStatus();
+				showPlayerUI();
+				return false;
+			});
+			Mousetrap.bind('left', () => {
+				if (playerElement) {
+					playerElement.currentTime = Math.max(0, playerElement.currentTime - 10);
+					showPlayerUI();
+				}
+				return false;
+			});
+			Mousetrap.bind('right', () => {
+				if (playerElement) {
+					playerElement.currentTime = Math.min(playerElement.duration || Infinity, playerElement.currentTime + 10);
+					showPlayerUI();
+				}
+				return false;
+			});
+			Mousetrap.bind(['up', 'down'], () => {
+				showPlayerUI();
+				return false;
+			});
+		} else {
 			Mousetrap.bind($keybindStore.skipSponsor, () => {
 				if (segmentManualSkip) {
 					skipSegment(segmentManualSkip);
@@ -727,7 +779,27 @@
 		try {
 			await loadVideo();
 		} catch (error: unknown) {
-			console.error(error);
+			console.error('[Materialious Player] loadVideo failed:', error);
+
+			// Fallback to progressive formatStream if available
+			if (data.video.formatStreams && data.video.formatStreams.length > 0) {
+				console.log('[Materialious Player] Falling back to progressive formatStream[0] MP4...');
+				try {
+					let streamUrl = data.video.formatStreams[0].url;
+					if (streamUrl.startsWith('/')) {
+						const instance = get(invidiousInstanceStore);
+						if (instance) {
+							streamUrl = new URL(streamUrl, instance).href;
+						}
+					}
+					await player.load(streamUrl, await getPlaybackHistory());
+					if (playerElement) await playerElement.play();
+					console.log('[Materialious Player] formatStream fallback succeeded!');
+					return;
+				} catch (fallbackError) {
+					console.error('[Materialious Player] formatStream fallback also failed:', fallbackError);
+				}
+			}
 
 			if (
 				!isUnrestrictedPlatform() ||
@@ -794,7 +866,9 @@
 			$keybindStore.frameForward
 		]);
 
-		if (!isAndroidTv()) {
+		if (isAndroidTv()) {
+			Mousetrap.unbind(['enter', 'left', 'right', 'up', 'down']);
+		} else {
 			Mousetrap.unbind($keybindStore.skipSponsor);
 		}
 

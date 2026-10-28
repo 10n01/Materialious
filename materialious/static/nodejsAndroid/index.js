@@ -105,10 +105,11 @@ function proxyRequest(clientReq, clientRes, parsedUrl, bodyChunks = [], redirect
 
 		const origin = clientReq && clientReq.headers && clientReq.headers.origin ? clientReq.headers.origin : CORS_ORIGIN;
 
-		// Clean up existing CORS headers to avoid duplicate header conflicts in Chromium WebView
+		// Clean up existing CORS headers and restrictive security headers from upstream
 		const cleanHeaders = {};
 		for (const [key, value] of Object.entries(proxyRes.headers)) {
-			if (!key.toLowerCase().startsWith('access-control-')) {
+			const lowerKey = key.toLowerCase();
+			if (!lowerKey.startsWith('access-control-') && lowerKey !== 'content-security-policy' && lowerKey !== 'x-frame-options') {
 				cleanHeaders[key] = value;
 			}
 		}
@@ -210,7 +211,10 @@ const server = http.createServer((req, res) => {
 
 	const bodyChunks = [];
 	req.on('data', (chunk) => bodyChunks.push(chunk));
-	req.on('end', () => proxyRequest(req, res, parsedTarget, bodyChunks));
+	req.on('end', () => {
+		console.log('[NODE PROXY]', req.method, targetUrl.substring(0, 120));
+		proxyRequest(req, res, parsedTarget, bodyChunks);
+	});
 });
 
 server.listen(PORT, () => {
