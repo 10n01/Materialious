@@ -455,6 +455,7 @@
 		player = new shaka.Player();
 
 		player.configure({
+			preferredAudioCodecs: ['opus'],
 			abr: {
 				enabled: true
 			},
@@ -463,9 +464,9 @@
 					console.error('Streaming failure:', error);
 					player.retryStreaming(5);
 				},
-				bufferingGoal: 120,
+				bufferingGoal: 30,
 				rebufferingGoal: 2,
-				bufferBehind: 300,
+				bufferBehind: 15,
 				// Jump over small gaps in the buffer instead of stalling
 				// until the user manually seeks.
 				gapDetectionThreshold: 1,

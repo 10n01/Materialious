@@ -115,17 +115,26 @@ export function restoreQualityPreference(player: shaka.Player) {
 }
 
 export function restoreDefaultLanguage(player: shaka.Player) {
+	const allTracks = player.getAudioTracks();
+	const sortTracks = (tracks: typeof allTracks) =>
+		[...tracks].sort((a, b) => {
+			const aOpus = a.codecs?.toLowerCase().includes('opus') ? 1 : 0;
+			const bOpus = b.codecs?.toLowerCase().includes('opus') ? 1 : 0;
+			if (aOpus !== bOpus) return bOpus - aOpus;
+			return (b.bandwidth || 0) - (a.bandwidth || 0);
+		});
+
 	if (!get(playerDefaultLanguage) || get(playerDefaultLanguage) === 'original') {
-		const audioTrack = player.getAudioTracks().find(({ roles }) => roles.includes('main'));
+		const mainTracks = sortTracks(allTracks.filter(({ roles }) => roles.includes('main')));
+		const audioTrack = mainTracks[0] ?? sortTracks(allTracks)[0];
 		if (audioTrack !== undefined) {
 			player.selectAudioTrack(audioTrack);
 			return;
 		}
 	} else if (get(playerDefaultLanguage)) {
-		const audioTracks = player.getAudioTracks();
 		const langCode = ISO6391.getCode(get(playerDefaultLanguage));
-
-		const audioTrack = audioTracks.find((audioTrack) => audioTrack.language.startsWith(langCode));
+		const langTracks = sortTracks(allTracks.filter((audioTrack) => audioTrack.language.startsWith(langCode)));
+		const audioTrack = langTracks[0];
 
 		if (audioTrack) {
 			player.selectAudioTrack(audioTrack);
