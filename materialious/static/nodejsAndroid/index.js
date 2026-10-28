@@ -5,8 +5,8 @@ const HOST = 'localhost';
 const PORT = 3000;
 const MAX_REDIRECTS = 10;
 
-// Can be changed via channels to disable ssl validation.
-let rejectUnauthorized = true;
+// Allow self-signed certificates and insecure LAN by default
+let rejectUnauthorized = false;
 
 const CORS_HEADERS = [
 	'Origin',
@@ -37,8 +37,9 @@ const CORS_ORIGIN = 'https://www.youtube.com';
 const USER_AGENT =
 	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36(KHTML, like Gecko)';
 
-function setCorsHeaders(res) {
-	res.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
+function setCorsHeaders(req, res) {
+	const origin = req && req.headers && req.headers.origin ? req.headers.origin : CORS_ORIGIN;
+	res.setHeader('Access-Control-Allow-Origin', origin);
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 	res.setHeader('Access-Control-Allow-Headers', CORS_HEADERS);
 	res.setHeader('Access-Control-Max-Age', '86400');
@@ -101,6 +102,8 @@ function proxyRequest(clientReq, clientRes, parsedUrl, bodyChunks = [], redirect
 			return proxyRequest(clientReq, clientRes, newUrl, bodyChunks, redirectCount + 1);
 		}
 
+		const origin = clientReq && clientReq.headers && clientReq.headers.origin ? clientReq.headers.origin : CORS_ORIGIN;
+
 		if (returnHeadersAsJson) {
 			const headersDict = {};
 			for (const [key, value] of Object.entries(proxyRes.headers)) {
@@ -111,7 +114,7 @@ function proxyRequest(clientReq, clientRes, parsedUrl, bodyChunks = [], redirect
 
 			clientRes.writeHead(200, {
 				'Content-Type': 'application/json',
-				'Access-Control-Allow-Origin': CORS_ORIGIN,
+				'Access-Control-Allow-Origin': origin,
 				'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 				'Access-Control-Allow-Headers': CORS_HEADERS,
 				'Access-Control-Allow-Credentials': 'true',
@@ -122,7 +125,7 @@ function proxyRequest(clientReq, clientRes, parsedUrl, bodyChunks = [], redirect
 
 		clientRes.writeHead(proxyRes.statusCode, {
 			...proxyRes.headers,
-			'Access-Control-Allow-Origin': CORS_ORIGIN,
+			'Access-Control-Allow-Origin': origin,
 			'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 			'Access-Control-Allow-Headers': CORS_HEADERS,
 			'Access-Control-Allow-Credentials': 'true'
@@ -155,7 +158,7 @@ function proxyRequest(clientReq, clientRes, parsedUrl, bodyChunks = [], redirect
 }
 
 const server = http.createServer((req, res) => {
-	setCorsHeaders(res);
+	setCorsHeaders(req, res);
 
 	if (req.method === 'OPTIONS') {
 		res.writeHead(204);

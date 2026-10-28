@@ -10,15 +10,16 @@
 	} from '#lib/backend';
 	import { setInvidiousInstance, setMaterialiousBackend, clearCaches } from '#lib/auth';
 	import { isOwnBackend } from '#lib/shared/index';
+	import { getPublicEnv } from '#lib/env';
 	import {
 		backendInUseStore,
 		invidiousInstanceStore,
 		playerYouTubeJsFallback
 	} from '#lib/store';
 
-	const defaultInstance = !isOwnBackend()
-		? 'https://invidious.materialio.us'
-		: $invidiousInstanceStore;
+	const defaultInstance =
+		getPublicEnv('DEFAULT_INVIDIOUS_INSTANCE') ??
+		(!isOwnBackend() ? 'https://invidious.materialio.us' : $invidiousInstanceStore);
 
 	let usingInvidious: boolean = $state(false);
 	let invidiousInstanceValid: boolean = $state(true);

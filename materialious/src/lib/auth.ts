@@ -77,9 +77,13 @@ export async function setInvidiousInstance(
 		return false;
 	}
 
-	let invalidInstance = false;
+	let cleanUrl = instanceUrl.trim();
+	if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+		cleanUrl = 'http://' + cleanUrl;
+	}
 
-	const instance = ensureNoTrailingSlash(instanceUrl).toLowerCase();
+	let invalidInstance = false;
+	const instance = ensureNoTrailingSlash(cleanUrl).toLowerCase();
 
 	try {
 		new URL(instance);
@@ -92,15 +96,18 @@ export async function setInvidiousInstance(
 	let resp;
 	try {
 		resp = await fetch(`${instance}/api/v1/channels/UCH-_hzb2ILSCo9ftVSnrCIQ`);
+		if (!resp.ok) {
+			resp = await fetch(`${instance}/api/v1/stats`);
+		}
 	} catch {
-		invalidInstance = true;
+		try {
+			resp = await fetch(`${instance}/api/v1/stats`);
+		} catch {
+			invalidInstance = true;
+		}
 	}
 
-	if (invalidInstance) return false;
-
-	if (resp && !resp.ok) {
-		return false;
-	}
+	if (invalidInstance || !resp || !resp.ok) return false;
 
 	invidiousInstanceStore.set(instance);
 	invidiousAuthStore.set(null);

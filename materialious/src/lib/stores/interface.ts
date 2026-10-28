@@ -61,7 +61,7 @@ export const interfaceSearchHistoryEnabled = persist(
 	'searchHistoryEnabled'
 );
 export const interfaceAllowInsecureRequests = persist(
-	writable(false),
+	writable(true),
 	createStorage(),
 	'allowInsecureRequests'
 );
