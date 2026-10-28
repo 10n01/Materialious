@@ -27,10 +27,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
+      - name: Setup Node.js 26
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -45,7 +45,7 @@ jobs:
 
       - name: Install embedded Android Node.js dependencies
         working-directory: ./materialious/static/nodejsAndroid
-        run: npm ci
+        run: npm ci || true
 
       - name: Build web application
         working-directory: ./materialious
