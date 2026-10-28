@@ -85,9 +85,17 @@ export function proxyGoogleImage(source: string): string {
 }
 
 export function imageHandleCors(source: string): string {
+	if (!source) return '';
+	let url = source;
+	if (url.startsWith('/')) {
+		const instance = get(invidiousInstanceStore);
+		if (instance) {
+			url = `${instance}${url}`;
+		}
+	}
 	if (Capacitor.getPlatform() === 'android') {
-		return corsProxyUrl + source;
+		return corsProxyUrl + url;
 	}
 
-	return source;
+	return url;
 }

@@ -91,5 +91,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Materialious-Xiaomi-Google-TV-APK
-          path: signed_apks/*.apk
+          path: signed_apks/app-universal-release-signed.apk
           retention-days: 30

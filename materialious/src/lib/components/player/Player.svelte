@@ -289,6 +289,13 @@
 				dashUrl = data.video.dashUrl;
 			}
 
+			if (dashUrl && dashUrl.startsWith('/')) {
+				const instance = get(invidiousInstanceStore);
+				if (instance) {
+					dashUrl = new URL(dashUrl, instance).href;
+				}
+			}
+
 			if (!data.video.fallbackPatch && (!isUnrestrictedPlatform() || $playerProxyVideosStore)) {
 				dashUrl += '?local=true';
 			}

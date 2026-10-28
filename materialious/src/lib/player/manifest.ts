@@ -2,6 +2,12 @@ import { invidiousInstanceStore } from '#lib/store';
 import { get } from 'svelte/store';
 
 export async function manifestDomainInclusion(manifestUrl: string): Promise<string> {
+	if (manifestUrl && manifestUrl.startsWith('/')) {
+		const instance = get(invidiousInstanceStore);
+		if (instance) {
+			manifestUrl = new URL(manifestUrl, instance).href;
+		}
+	}
 	const respCompanion = await fetch(manifestUrl, {
 		method: 'GET'
 	});

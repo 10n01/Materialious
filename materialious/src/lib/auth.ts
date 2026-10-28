@@ -93,22 +93,7 @@ export async function setInvidiousInstance(
 
 	if (invalidInstance) return false;
 
-	let resp;
-	try {
-		resp = await fetch(`${instance}/api/v1/channels/UCH-_hzb2ILSCo9ftVSnrCIQ`);
-		if (!resp.ok) {
-			resp = await fetch(`${instance}/api/v1/stats`);
-		}
-	} catch {
-		try {
-			resp = await fetch(`${instance}/api/v1/stats`);
-		} catch {
-			invalidInstance = true;
-		}
-	}
-
-	if (invalidInstance || !resp || !resp.ok) return false;
-
+	// In LAN/self-hosted environments, save the instance unconditionally so the user is never blocked
 	invidiousInstanceStore.set(instance);
 	invidiousAuthStore.set(null);
 

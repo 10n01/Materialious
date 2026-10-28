@@ -42,6 +42,7 @@ function setCorsHeaders(req, res) {
 	res.setHeader('Access-Control-Allow-Origin', origin);
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 	res.setHeader('Access-Control-Allow-Headers', CORS_HEADERS);
+	res.setHeader('Access-Control-Expose-Headers', '*');
 	res.setHeader('Access-Control-Max-Age', '86400');
 	res.setHeader('Access-Control-Allow-Credentials', 'true');
 }
@@ -104,9 +105,17 @@ function proxyRequest(clientReq, clientRes, parsedUrl, bodyChunks = [], redirect
 
 		const origin = clientReq && clientReq.headers && clientReq.headers.origin ? clientReq.headers.origin : CORS_ORIGIN;
 
+		// Clean up existing CORS headers to avoid duplicate header conflicts in Chromium WebView
+		const cleanHeaders = {};
+		for (const [key, value] of Object.entries(proxyRes.headers)) {
+			if (!key.toLowerCase().startsWith('access-control-')) {
+				cleanHeaders[key] = value;
+			}
+		}
+
 		if (returnHeadersAsJson) {
 			const headersDict = {};
-			for (const [key, value] of Object.entries(proxyRes.headers)) {
+			for (const [key, value] of Object.entries(cleanHeaders)) {
 				headersDict[key] = value;
 			}
 
@@ -124,10 +133,11 @@ function proxyRequest(clientReq, clientRes, parsedUrl, bodyChunks = [], redirect
 		}
 
 		clientRes.writeHead(proxyRes.statusCode, {
-			...proxyRes.headers,
+			...cleanHeaders,
 			'Access-Control-Allow-Origin': origin,
 			'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 			'Access-Control-Allow-Headers': CORS_HEADERS,
+			'Access-Control-Expose-Headers': '*',
 			'Access-Control-Allow-Credentials': 'true'
 		});
 
