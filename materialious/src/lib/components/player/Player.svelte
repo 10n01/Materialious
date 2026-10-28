@@ -649,32 +649,7 @@
 			return false;
 		});
 
-		if (isAndroidTv()) {
-			// On Android TV, Enter/OK key on remote toggles play/pause
-			Mousetrap.bind('enter', () => {
-				toggleVideoPlaybackStatus();
-				showPlayerUI();
-				return false;
-			});
-			Mousetrap.bind('left', () => {
-				if (playerElement) {
-					playerElement.currentTime = Math.max(0, playerElement.currentTime - 10);
-					showPlayerUI();
-				}
-				return false;
-			});
-			Mousetrap.bind('right', () => {
-				if (playerElement) {
-					playerElement.currentTime = Math.min(playerElement.duration || Infinity, playerElement.currentTime + 10);
-					showPlayerUI();
-				}
-				return false;
-			});
-			Mousetrap.bind(['up', 'down'], () => {
-				showPlayerUI();
-				return false;
-			});
-		} else {
+		if (!isAndroidTv()) {
 			Mousetrap.bind($keybindStore.skipSponsor, () => {
 				if (segmentManualSkip) {
 					skipSegment(segmentManualSkip);
@@ -682,7 +657,6 @@
 				}
 			});
 		}
-
 		Mousetrap.bind($keybindStore.toggleSubtitles, () => {
 			toggleSubtitles();
 			showPlayerUI();
@@ -867,9 +841,7 @@
 			$keybindStore.frameForward
 		]);
 
-		if (isAndroidTv()) {
-			Mousetrap.unbind(['enter', 'left', 'right', 'up', 'down']);
-		} else {
+		if (!isAndroidTv()) {
 			Mousetrap.unbind($keybindStore.skipSponsor);
 		}
 
