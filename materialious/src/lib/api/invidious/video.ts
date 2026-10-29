@@ -26,6 +26,11 @@ export async function getVideoInvidious(
 
 	if (resp.ok) {
 		await associateAvatar(respJson.authorId, respJson.authorThumbnails);
+		if (Array.isArray(respJson.recommendedVideos)) {
+			for (const rec of respJson.recommendedVideos) {
+				if (!rec.type) rec.type = 'video';
+			}
+		}
 	}
 
 	return respJson;
